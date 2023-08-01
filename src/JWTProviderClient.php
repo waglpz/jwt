@@ -13,6 +13,8 @@ use Ramsey\Uuid\Uuid;
 final class JWTProviderClient
 {
     private string $webappId;
+    /** @var array<mixed> */
+    private array $initialPayload;
 
     public function __construct(
         private readonly ClientInterface $client,
@@ -52,6 +54,10 @@ final class JWTProviderClient
             'webappId'    => $this->webappId,
         ];
 
+        if (isset($this->initialPayload)) {
+            $payload += $this->initialPayload;
+        }
+
         try {
             $options      = ['json' => $payload, 'verify' => $this->verifySSL];
             $response     = $this->client->request('POST', $this->url, $options);
@@ -76,5 +82,11 @@ final class JWTProviderClient
         }
 
         return $responseData['token'];
+    }
+
+    /** @param array<mixed> $extendData */
+    public function initPayloadBeforeSend(array $extendData): void
+    {
+        $this->initialPayload = $extendData;
     }
 }
